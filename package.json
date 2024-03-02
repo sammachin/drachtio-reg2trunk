@@ -1,0 +1,16 @@
+{
+  "name": "drachtio_regtrunk",
+  "version": "0.0.1",
+  "description": "Drachtio App to connect a Trunk to SIP Registration",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Sam Machin",
+  "license": "MIT",
+  "dependencies": {
+    "drachtio-sip": "^0.6.3",
+    "drachtio-srf": "^4.5.31",
+    "express": "^4.18.3"
+  }
+}
