@@ -3,15 +3,15 @@ const srf = new Srf();
 const parseUri = require('drachtio-sip').parser.parseUri;
 const express = require('express')
 
-//Todo Move these to env 
-const WEBPORT = 3000
-const REGHOST = "default.jbsip.sammachin.com"
-const REGIP = "192.168.1.12"
-const TRUNKIP = "192.168.1.163"
-const TRUNKTRANSPORT = 'udp'
-const REGTRANSPORT = "udp"
-const LOCAL_IP = "192.168.1.10"
-const LOCAL_PORT = "10222"
+//Todo Move these to env
+const WEBPORT = process.env.R2T_WEBPORT
+const REGHOST = process.env.R2T_REGHOST
+const REGIP = process.env.R2T_REGIP
+const TRUNKIP = process.env.R2T_TRUNKIP
+const TRUNKTRANSPORT = process.env.R2T_TRUNKTRANSPORT
+const REGTRANSPORT = process.env.R2T_REGTRANSPORT
+const LOCAL_IP = process.env.R2T_LOCALIP
+const LOCAL_PORT = process.env.R2T_LOCALPORT
 
 let numbers = {}
 
@@ -47,7 +47,7 @@ function register(srf, server, username, password, expiry) {
         else {
             console.log(`REGISTER was rejected after auth with ${res.status}`);
         }
-        
+
       });
     });
   }
@@ -63,13 +63,13 @@ srf.invite((req, res) => {
     let dest
     if (req.source_address == REGIP){
         console.log('Reg Originated')
-        dest = `sip:${uri.user}@${TRUNKIP};transport=${TRUNKTRANSPORT}`; 
-        opts = {} 
+        dest = `sip:${uri.user}@${TRUNKIP};transport=${TRUNKTRANSPORT}`;
+        opts = {}
     } else if (sender.host == TRUNKIP){
         console.log('Trunk Originated')
         dest = `sip:${uri.user}@${REGHOST}`;
         console.log(dest)
-        opts = {auth: { username: sender.user, password: "pwpwpw" }} 
+        opts = {auth: { username: sender.user, password: "pwpwpw" }}
     } else {
       console.log(`Unknown request ${uri}`)
       res.send(406, 'I dont know you')
@@ -85,7 +85,7 @@ srf.invite((req, res) => {
         console.log(`call failed to connect: ${err}`);
       });
     }
-    
+
 });
 
 srf.connect({
