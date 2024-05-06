@@ -1,9 +1,9 @@
 #!/bin/bash
 set -e
 
-#echo "Starting NodeJS app"
-#pm2 start --restart-delay 3000 /app/index.js
-#echo "NodeJS app started, continuing to start drachtio"
+echo "Starting NodeJS app"
+pm2 start --restart-delay 3000 /app/index.js
+echo "NodeJS app started, continuing to start drachtio"
 
 echo "Starting Drachtio"
 
