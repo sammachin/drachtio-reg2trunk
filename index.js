@@ -93,7 +93,7 @@ srf.invite((req, res) => {
 });
 
 srf.connect({
-    host: '90.155.21.61',
+    host: '127.0.0.1',
     port: 9022,
     secret: 'cymru'
 });
