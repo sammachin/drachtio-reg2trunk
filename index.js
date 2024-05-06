@@ -3,7 +3,6 @@ const srf = new Srf();
 const parseUri = require('drachtio-sip').parser.parseUri;
 const express = require('express')
 
-//Todo Move these to env
 const WEBPORT = process.env.R2T_WEBPORT
 const REGHOST = process.env.R2T_REGHOST
 const REGIP = process.env.R2T_REGIP
@@ -64,14 +63,16 @@ srf.invite((req, res) => {
     if (req.source_address == REGIP){
         console.log('Reg Originated')
         dest = `sip:${uri.user}@${TRUNKIP};transport=${TRUNKTRANSPORT}`;
-        opts = {}
-    } else if (sender.host == TRUNKIP){
+        contact = `sip:${uri.user}@${LOCAL_IP};transport=${TRUNKTRANSPORT}`;
+        opts = {'headers' : {'Contact' : contact}}
+        console.log(req.get('Contact'))
+    } else if (req.source_address == TRUNKIP){
         console.log('Trunk Originated')
         dest = `sip:${uri.user}@${REGHOST}`;
-        console.log(dest)
-        opts = {auth: { username: sender.user, password: "pwpwpw" }}
+        opts = {auth: { username: sender.user, password: numbers[sender.user]['password'] }}
+        console.log(req.get('Contact'))
     } else {
-      console.log(`Unknown request ${uri}`)
+      console.log(`Unknown Source IP ${req.source_address}`)
       res.send(406, 'I dont know you')
     }
     if (dest != undefined){
