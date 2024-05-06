@@ -8,4 +8,3 @@ set -e
 echo "Starting Drachtio"
 
 exec drachtio --contact "sip:*:${DRACHTIO_SIPPORT};transport=udp,tcp" --external-ip $DRACHTIO_PUBLICIP
-

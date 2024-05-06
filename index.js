@@ -61,16 +61,19 @@ srf.invite((req, res) => {
     const sender = parseUri(req.getParsedHeader('From').uri)
     let dest
     if (req.source_address == REGIP){
-        console.log('Reg Originated')
+        console.log(`Reg originated call from ${sender.user} to ${uri.user}` )
         dest = `sip:${uri.user}@${TRUNKIP};transport=${TRUNKTRANSPORT}`;
-        contact = `sip:${uri.user}@${LOCAL_IP};transport=${TRUNKTRANSPORT}`;
-        opts = {'headers' : {'Contact' : contact}}
+        opts = {}
         console.log(req.get('Contact'))
     } else if (req.source_address == TRUNKIP){
-        console.log('Trunk Originated')
-        dest = `sip:${uri.user}@${REGHOST}`;
-        opts = {auth: { username: sender.user, password: numbers[sender.user]['password'] }}
-        console.log(req.get('Contact'))
+        console.log(`Trunk Originated call from ${sender.user} to ${uri.user}`)
+        if (sender.user in numbers){
+          dest = `sip:${uri.user}@${REGHOST}:5060;transport=${REGTRANSPORT}`;
+          opts = {auth: { username: sender.user, password: numbers[sender.user]['password'] }}
+        } else {
+          console.error(`ERROR ${sender.user} is not registered`)
+          res.send(406, 'Number not registered')
+        }
     } else {
       console.log(`Unknown Source IP ${req.source_address}`)
       res.send(406, 'I dont know you')
@@ -90,7 +93,7 @@ srf.invite((req, res) => {
 });
 
 srf.connect({
-    host: '127.0.0.1',
+    host: '90.155.21.61',
     port: 9022,
     secret: 'cymru'
 });
