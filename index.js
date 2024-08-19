@@ -81,6 +81,7 @@ srf.invite((req, res) => {
     if (dest != undefined){
       srf.createB2BUA(req, res, dest, opts)
       .then(({uas, uac}) => {
+        console.log(uas)
         // when one side terminates, hang up the other
         uas.on('destroy', () => { uac.destroy(); });
         uac.on('destroy', () => { uas.destroy(); });
@@ -93,7 +94,7 @@ srf.invite((req, res) => {
 });
 
 srf.connect({
-    host: '90.155.21.61',
+    host: '127.0.0.1',
     port: 9022,
     secret: 'cymru'
 });
