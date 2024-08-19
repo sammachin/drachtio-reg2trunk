@@ -1,8 +1,8 @@
-FROM drachtio/drachtio-server:0.8.24
+FROM drachtio/drachtio-server:0.8.25
 
-# RUN apt-get update && \
-#   apt-get install --quiet -y nodejs npm && \
-#   npm install -g pm2@latest
+RUN apt-get update && \
+  apt-get install --quiet -y nodejs npm && \
+  npm install -g pm2@latest
 
 ADD entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
@@ -11,7 +11,7 @@ WORKDIR /app
 
 ADD . .
 
-# RUN npm install --production
+RUN npm install --production
 
 ENV R2T_PORT="3000"
 ENV R2T_REGHOST="clients.sip.poc.emf.camp"
