@@ -5,6 +5,9 @@ const client = new rtpengine();
 const parseUri = require('drachtio-sip').parser.parseUri;
 const express = require('express')
 
+const EventEmitter = require('node:events');
+
+const eventEmitter = new EventEmitter();
 
 //Config
 
@@ -19,32 +22,6 @@ const LOCAL_IP = "192.168.1.151" //process.env.R2T_LOCALIP
 const LOCAL_PORT = "5060" // process.env.R2T_LOCALPORT
 
 let numbers = {}
-
-
-// helper functions
-
-// clean up and free rtpengine resources when either side hangs up
-function endCall(dlg1, dlg2, details) {
-  [dlg1, dlg2].each((dlg) => {
-    dlg.on('destroy', () => {
-        console.log("Ending Call")
-        (dlg === dlg1 ? dlg2 : dlg1).destroy();
-        rtpengine.delete(details);
-    });
-  });
-}
-
-// function returning a Promise that resolves with the SDP to offer A leg in 18x/200 answer
-function getSdpA(details, remoteSdp, res) {
-  return client.answer(2223, '127.0.0.1', Object.assign(details, {
-    'sdp': remoteSdp,
-    'to-tag': res.getParsedHeader('To').params.tag
-   }))
-    .then((response) => {
-      if (response.result !== 'ok') throw new Error(`Error calling answer: ${response['error-reason']}`);
-      return response.sdp;
-   })
-}
 
 //SIP Registration
 function register(srf, server, username, password, expiry) {
@@ -86,11 +63,44 @@ function register(srf, server, username, password, expiry) {
 
 
 
+
+// helper functions
+
+// clean up and free rtpengine resources when either side hangs up
+function endCall(dlg1, dlg2, details) {
+  [dlg1, dlg2].each((dlg) => {
+    dlg.on('destroy', () => {
+        console.log("Ending Call")
+        (dlg === dlg1 ? dlg2 : dlg1).destroy();
+        rtpengine.delete(details);
+    });
+  });
+}
+
+// function returning a Promise that resolves with the SDP to offer A leg in 18x/200 answer
+function getSdpA(details, remoteSdp, res) {
+  return client.answer(2223, '127.0.0.1', Object.assign(details, {
+    'sdp': remoteSdp,
+    'to-tag': res.getParsedHeader('To').params.tag
+   }))
+    .then((response)=> {
+      if (response.result !== 'ok') throw new Error(`Error calling answer: ${response['error-reason']}`);
+      if (res.status == 180){
+        res.status = 183
+      }
+      return response.sdp;
+   })
+}
+
+
+
 srf.on('connect', (err, hostport) => {
     console.log(`connected to a drachtio server listening on: ${hostport}`);
   });
-
   
+eventEmitter.on('stateChange', (evt) => {
+	console.log(evt)
+});
 
 // handle incoming invite
 srf.invite((req, res) => {
@@ -121,14 +131,17 @@ srf.invite((req, res) => {
       res.send(406, 'I dont know you')
   }
   if (dest != undefined) {
-  client.offer(2223, '127.0.0.1', Object.assign(details, {'sdp': req.body, 'codec': codecs }))
+  client.offer(2223, '127.0.0.1', Object.assign(details, {'sdp': req.body, 'codec': codecs, 'flags' : ['early media']}))
     .then((rtpResponse) => {
+      console.log('ringing')
+      //client.playMedia(2223, '127.0.0.1', Object.assign(details, {'file': '/tmp/ukringbacktone.mp3', 'flags' : ['early media'] }))
       if (rtpResponse && rtpResponse.result === 'ok') return rtpResponse.sdp;
       throw new Error('rtpengine failure');
     })
     .then((sdpB) => {
       opts.localSdpB = sdpB
       opts.localSdpA = getSdpA.bind(null, details)
+      opts.dialogStateEmitter = eventEmitter;
       return srf.createB2BUA(req, res, dest, opts);
     })
     .then(({uas, uac}) => {
